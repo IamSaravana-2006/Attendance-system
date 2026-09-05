@@ -1,33 +1,26 @@
 from flask import Flask, request, jsonify, render_template, session, redirect
 import mysql.connector
 from functools import wraps
-
-app = Flask(__name__)
 import os
 
-print("APP FOLDER:", os.getcwd())
-print("TEMPLATES:", os.path.abspath("templates"))
-print(
-    "STUDENTS EXISTS:",
-    os.path.exists(
-        os.path.join("templates", "students.html")
-    )
-)
-
-app.secret_key = "attendance_secret_key"
-
+app = Flask(__name__)
 
 # ==========================================
-# MYSQL CONNECTION
+# DATABASE CONNECTION (Local + Vercel)
 # ==========================================
+# Local dev: uses localhost MySQL
+# Vercel: uses environment variables for cloud MySQL (e.g. PlanetScale, Railway, etc.)
 
 def get_db():
     return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="avce123",
-        database="attendance_app"
+        host=os.environ.get("DB_HOST", "localhost"),
+        user=os.environ.get("DB_USER", "root"),
+        password=os.environ.get("DB_PASSWORD", "avce123"),
+        database=os.environ.get("DB_NAME", "attendance_app"),
+        port=int(os.environ.get("DB_PORT", "3306"))
     )
+
+app.secret_key = os.environ.get("SECRET_KEY", "attendance_secret_key")
 
 
 # ==========================================
@@ -726,7 +719,7 @@ def mark_bulk_attendance():
 
 
 # ==========================================
-# RUN SERVER
+# RUN SERVER (Local dev)
 # ==========================================
 
 if __name__ == "__main__":
