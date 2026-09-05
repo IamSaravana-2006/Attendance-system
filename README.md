@@ -1,134 +1,156 @@
 # AVCE Attendance Management System
 
-Annai Vailankanni College of Engineering - Attendance Management System built with Flask + MySQL.
+Annai Vailankanni College of Engineering — Attendance Management System  
+Built with **Flask + MySQL** · Developed by **Saravanan K**
+
+---
 
 ## Features
 - Staff & Admin login
 - 4 Departments (CSE, AIDS, BME, MECH)
-- Student management (add single / bulk)
-- Attendance marking (single / batch / CSV export)
-- Live attendance stats
-- Dashboard with metrics
-- Dark/Light glass theme
+- Student management (add single / bulk list)
+- Attendance marking (single / batch save / CSV export)
+- Live attendance stats bar
+- Dashboard with today's metrics
+- Dark / Light glassmorphism theme
+
+---
 
 ## Local Development
 
 ### Prerequisites
 - Python 3.8+
-- MySQL Server (local)
+- MySQL Server running locally
 
 ### Setup
 
-1. **Create the database:**
-   ```bash
-   mysql -u root -p < database.sql
-   ```
+```bash
+# 1. Create local database
+mysql -u root -p < database.sql
 
-2. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+# 2. Install dependencies
+pip install -r requirements.txt
 
-3. **Run the app:**
-   ```bash
-   python app.py
-   ```
-   Visit http://localhost:5000
+# 3. Run the app
+python app.py
+```
+
+Visit **http://localhost:5000**
 
 ### Default Login
-- **Admin:** `admin` / `admin123`
-- **Staff:** `staff` / `staff123`
+| Role  | Username | Password  |
+|-------|----------|-----------|
+| Admin | `admin`  | `admin123` |
+| Staff | `staff`  | `staff123` |
 
 ---
 
-## Vercel Deployment
+## Deploy to Render (FREE — Recommended)
 
-### Important Notes
+Render is the easiest platform for Flask + MySQL. Follow these steps exactly.
 
-Vercel is a **serverless** platform. Your local MySQL database (localhost:3306) **will NOT work** on Vercel. You must use a **cloud MySQL** database.
+---
 
-### 1. Set Up a Cloud MySQL Database
+### Step 1 — Create a Free Cloud MySQL Database
 
-Choose one of these free/cheap MySQL providers:
+Go to **https://railway.app** → Sign up (free)
 
-| Provider | URL | Free Tier |
-|----------|-----|-----------|
-| **Railway** | https://railway.app | Yes (limited) |
-| **PlanetScale** | https://planetscale.com | Yes |
-| **Aiven** | https://aiven.io | Yes |
-| **Clever Cloud** | https://clever-cloud.com | Yes |
+1. Click **New Project → Deploy MySQL**
+2. After it creates, click on the MySQL service
+3. Go to **Connect** tab → copy these 5 values:
+   - `MYSQL_HOST`
+   - `MYSQL_USER`
+   - `MYSQL_PASSWORD`
+   - `MYSQL_DATABASE`
+   - `MYSQL_PORT` (usually `3306`)
 
-After creating your cloud MySQL database, run the `database_cloud.sql` script to create the tables and seed data.
+4. Open **MySQL workbench** or any SQL client, connect using those details, and run the `database_cloud.sql` file to create all tables.
 
-### 2. Configure Vercel Environment Variables
+---
 
-In your Vercel project dashboard, go to **Settings → Environment Variables** and add:
+### Step 2 — Push Code to GitHub
 
-| Variable | Value |
-|----------|-------|
-| `DB_HOST` | Your cloud MySQL host |
-| `DB_USER` | Your cloud MySQL username |
-| `DB_PASSWORD` | Your cloud MySQL password |
-| `DB_NAME` | Your cloud MySQL database name |
-| `DB_PORT` | `3306` (or your provider's port) |
-| `SECRET_KEY` | A random secret string |
-
-### 3. Deploy
-
-**Option A - Vercel Dashboard (recommended):**
-1. Go to https://vercel.com
-2. Click **Add New → Project**
-3. Import your GitHub repo (`IamSaravana-2006/Attendance-system`)
-4. Framework preset: **Other**
-5. Build Command: *(leave empty)*
-6. Output Directory: *(leave empty)*
-7. Add the environment variables above
-8. Click **Deploy**
-
-**Option B - Vercel CLI:**
 ```bash
-npm install -g vercel
-vercel login
-vercel
+# In your project folder
+git init
+git add .
+git commit -m "Initial AVCE Attendance App"
+git branch -M main
+git remote add origin https://github.com/IamSaravana-2006/Attendance-system.git
+git push -u origin main
 ```
 
-### Files for Vercel
-- `vercel.json` - Routes all requests to the Flask app
-- `app.py` - Flask app (reads DB config from environment variables)
-- `requirements.txt` - Pinned dependencies
+---
+
+### Step 3 — Deploy on Render
+
+1. Go to **https://render.com** → Sign up / Login with GitHub
+2. Click **New → Web Service**
+3. Select your GitHub repo: `IamSaravana-2006/Attendance-system`
+4. Render will auto-detect `render.yaml` — confirm settings:
+   - **Name:** `avce-attendance`
+   - **Runtime:** Python 3
+   - **Build Command:** `pip install -r requirements.txt`
+   - **Start Command:** `gunicorn app:app`
+5. Click **Advanced** → Add Environment Variables:
+
+| Key | Value |
+|-----|-------|
+| `DB_HOST` | Your Railway MySQL host |
+| `DB_USER` | Your Railway MySQL user |
+| `DB_PASSWORD` | Your Railway MySQL password |
+| `DB_NAME` | Your Railway MySQL database name |
+| `DB_PORT` | `3306` |
+| `SECRET_KEY` | Any random string (e.g. `avce2026secret`) |
+
+6. Click **Create Web Service**
+7. Wait ~2 minutes for build to complete
+8. Your app will be live at: `https://avce-attendance.onrender.com`
 
 ---
 
-## Troubleshooting Vercel 404
+### Step 4 — Test Your Live App
 
-If you see a **404 NOT_FOUND** on Vercel:
+- Open the URL Render gives you
+- Login with `admin` / `admin123`
+- Add students and mark attendance — everything saves to Railway MySQL cloud
 
-1. **Missing `vercel.json`** - This file routes all requests to `app.py`. Without it, Vercel doesn't know how to serve your Flask app.
+---
 
-2. **Wrong project root** - Make sure Vercel is pointing to the root of the repo where `app.py` and `vercel.json` live.
+## Troubleshooting
 
-3. **Missing environment variables** - The app will default to `localhost` which doesn't exist on Vercel.
+| Problem | Fix |
+|---------|-----|
+| **App crashes on Render** | Check Render Logs tab for error message |
+| **Database connection failed** | Double-check all 5 DB environment variables |
+| **500 error** | Run `database_cloud.sql` on Railway MySQL first |
+| **Slow first load** | Free tier sleeps after 15 min inactivity — normal |
 
-4. **Check build logs** - In Vercel Dashboard → Deployments → your deployment → **Logs** tab.
-
-5. **Confirm redeploy after changes** - Push new commits to `main` branch, Vercel auto-deploys.
+---
 
 ## Project Structure
+
 ```
 ├── app.py                 # Flask application
-├── vercel.json            # Vercel configuration
-├── requirements.txt       # Python dependencies
-├── database.sql           # Local MySQL setup script
-├── database_cloud.sql     # Cloud MySQL setup script
+├── render.yaml            # Render deployment config
+├── vercel.json            # Vercel deployment config (alternative)
+├── requirements.txt       # Python dependencies (with gunicorn)
+├── database.sql           # Local MySQL setup
+├── database_cloud.sql     # Cloud MySQL setup (for Railway/Render)
+├── .gitignore             # Git ignore rules
 ├── static/
-│   ├── style.css          # Styles
+│   ├── style.css          # Glassmorphism styles
 │   └── app.js             # Frontend logic
 └── templates/
     ├── login.html         # Login page
-    ├── dashboard.html     # Dashboard page
+    ├── dashboard.html     # Dashboard
     ├── students.html      # Student management
-    └── attendance.html    # Attendance page
+    └── attendance.html    # Attendance management
 ```
 
+---
+
 ## Developer
-Developed by **Saravanan K** (Developer)
+
+**Saravanan K** — Developer  
+AVCE Attendance Management System © 2026
