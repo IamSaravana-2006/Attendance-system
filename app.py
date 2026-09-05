@@ -24,6 +24,122 @@ app.secret_key = os.environ.get("SECRET_KEY", "attendance_secret_key")
 
 
 # ==========================================
+# AUTO DATABASE INIT (No manual SQL needed!)
+# Runs on app startup — creates all tables
+# ==========================================
+
+def init_db():
+    """Auto-create all tables and seed data on first run."""
+    try:
+        db = get_db()
+        cur = db.cursor()
+
+        # 1. USERS TABLE
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                username VARCHAR(50) NOT NULL UNIQUE,
+                password VARCHAR(255) NOT NULL,
+                full_name VARCHAR(100) NOT NULL,
+                role ENUM('admin','staff') DEFAULT 'staff',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        # 2. DEPARTMENTS TABLE
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS departments (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                department_name VARCHAR(100) NOT NULL UNIQUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        # 3. STUDENTS TABLE
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS students (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                student_code VARCHAR(30) NOT NULL UNIQUE,
+                name VARCHAR(100) NOT NULL,
+                email VARCHAR(100),
+                phone VARCHAR(20),
+                gender ENUM('Male','Female','Other'),
+                department_id INT,
+                year INT DEFAULT 1,
+                section VARCHAR(10) DEFAULT 'A',
+                admission_date DATE,
+                status ENUM('Active','Inactive') DEFAULT 'Active',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (department_id)
+                    REFERENCES departments(id)
+                    ON DELETE SET NULL
+            )
+        """)
+
+        # 4. ATTENDANCE TABLE
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS attendance (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                student_id INT NOT NULL,
+                attendance_date DATE NOT NULL,
+                status ENUM('Present','Absent','Late','Leave') NOT NULL DEFAULT 'Absent',
+                check_in TIME,
+                check_out TIME,
+                remarks VARCHAR(255),
+                marked_by INT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+                FOREIGN KEY (marked_by) REFERENCES users(id) ON DELETE SET NULL,
+                UNIQUE (student_id, attendance_date)
+            )
+        """)
+
+        # 5. SETTINGS TABLE
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS settings (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                setting_name VARCHAR(100) NOT NULL UNIQUE,
+                setting_value VARCHAR(255)
+            )
+        """)
+
+        db.commit()
+
+        # Seed: Default users (admin + staff)
+        cur.execute("""
+            INSERT IGNORE INTO users (username, password, full_name, role)
+            VALUES
+                ('admin', 'admin123', 'Administrator', 'admin'),
+                ('staff', 'staff123', 'Staff User', 'staff')
+        """)
+
+        # Seed: 4 Departments
+        cur.execute("""
+            INSERT IGNORE INTO departments (id, department_name)
+            VALUES
+                (1, 'Computer Science & Engineering (CSE)'),
+                (2, 'Artificial Intelligence & Data Science (AIDS)'),
+                (3, 'Biomedical Engineering (BME)'),
+                (4, 'Mechanical Engineering (MECH)')
+        """)
+
+        db.commit()
+        cur.close()
+        db.close()
+        print("✅ Database initialized successfully!")
+
+    except Exception as e:
+        print(f"⚠️  DB init skipped (already exists or error): {e}")
+
+
+# Run auto-init when app starts
+with app.app_context():
+    init_db()
+
+
+
+# ==========================================
 # LOGIN REQUIRED
 # ==========================================
 
