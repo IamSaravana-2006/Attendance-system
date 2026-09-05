@@ -127,10 +127,10 @@ def init_db():
         db.commit()
         cur.close()
         db.close()
-        print("✅ Database initialized successfully!")
+        print("[OK] Database initialized successfully!")
 
     except Exception as e:
-        print(f"⚠️  DB init skipped (already exists or error): {e}")
+        print(f"[INFO] DB init skipped (already exists or connection error): {e}")
 
 
 # Run auto-init when app starts
