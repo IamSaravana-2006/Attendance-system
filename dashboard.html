@@ -1,136 +1,261 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | AVCE Attendance</title>
-    <link rel="stylesheet" href="static/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Dashboard | AVCE Attendance</title>
+  <meta name="description" content="AVCE Attendance Dashboard — real-time student and department overview">
+  <meta name="theme-color" content="#4F6EF7">
+  <link rel="stylesheet" href="static/style.css">
 </head>
 <body>
-<div class="ambient-mesh"><div class="ambient-orb orb-1"></div><div class="ambient-orb orb-2"></div><div class="ambient-orb orb-3"></div></div>
-<div class="app">
+<div class="app-shell">
 
-<!-- SIDEBAR -->
-<aside class="sidebar">
-    <div class="sidebar-brand">
-        <div class="sidebar-brand-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
-        </div>
-        <div class="sidebar-brand-text">AVCE<small>Attendance System</small></div>
+  <header class="mobile-header">
+    <div class="mobile-header-brand">
+      <div class="header-logo">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <polyline points="9 12 11 14 15 10"/>
+        </svg>
+      </div>
+      <div>
+        <div class="header-title">AVCE</div>
+        <div class="header-subtitle">Attendance System</div>
+      </div>
     </div>
-    <div class="nav-label">Navigation</div>
-    <nav>
-        <a href="dashboard.html" class="active">
-            <span class="nav-icon icon-svg"><svg width="18" height="18" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
-            <span>Dashboard</span>
-        </a>
-        <a href="students.html">
-            <span class="nav-icon icon-svg"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
-            <span>Students</span>
-        </a>
-        <a href="attendance.html">
-            <span class="nav-icon icon-svg"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
-            <span>Attendance</span>
-        </a>
-        <a href="#" onclick="logout()">
-            <span class="nav-icon icon-svg"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span>
-            <span>Logout</span>
-        </a>
-    </nav>
-    <div class="sidebar-footer-brand">AVCE ATTENDANCE<strong>Saravanan K</strong></div>
-</aside>
-
-<!-- MAIN -->
-<main class="main">
-    <header class="topbar">
+    <div class="header-actions">
+      <button class="icon-btn theme-toggle-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle theme">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <div class="user-chip">
+        <div class="user-avatar" id="userAvatarLetter">S</div>
         <div>
-            <h1>Dashboard</h1>
-            <p>AVCE Attendance Management System</p>
+          <div class="user-chip-name" id="userNameDisplay">Staff</div>
+          <div class="user-chip-role" id="userRoleDisplay">STAFF</div>
         </div>
-        <div class="topbar-right">
-            <button class="theme-toggle-btn" onclick="toggleTheme()"></button>
-            <div class="user-profile-badge">
-                <div class="user-avatar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
-                <div class="user-info"><span class="user-name" id="userName">Admin</span><span class="user-role-tag" id="userRole">ADMIN</span></div>
-            </div>
-            <div id="todayDate" class="current-date"></div>
-        </div>
-    </header>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-content">
+
+    <!-- Greeting Banner -->
+    <div class="greeting-banner">
+      <div>
+        <div class="greeting-time" id="greetingTime">GOOD MORNING</div>
+        <div class="greeting-name" id="greetingName">Welcome! 👋</div>
+        <div class="greeting-date" id="greetingDate"></div>
+      </div>
+      <div class="greeting-badge">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+          <path d="M16 4 L4 10 L16 16 L28 10Z" fill="rgba(255,255,255,0.9)"/>
+          <path d="M4 10 L4 22" stroke="rgba(255,255,255,0.7)" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M8 12 L8 22 Q16 26 24 22 L24 12" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.5)" stroke-width="1.2"/>
+        </svg>
+      </div>
+    </div>
 
     <!-- Stat Cards -->
-    <section class="cards">
-        <div class="card blue">
-            <div class="card-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-            <div><h3>Total Students</h3><h2 id="totalStudents">0</h2></div>
+    <div class="stats-row">
+      <div class="stat-card blue">
+        <div class="stat-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
         </div>
-        <div class="card green">
-            <div class="card-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
-            <div><h3>Present Today</h3><h2 id="presentToday">0</h2></div>
+        <div class="stat-label">Total Students</div>
+        <div class="stat-value" id="totalStudents">0</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
         </div>
-        <div class="card red">
-            <div class="card-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
-            <div><h3>Absent Today</h3><h2 id="absentToday">0</h2></div>
+        <div class="stat-label">Present Today</div>
+        <div class="stat-value" id="presentStudents">0</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+          </svg>
         </div>
-        <div class="card orange">
-            <div class="card-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-            <div><h3>Late Today</h3><h2 id="lateToday">0</h2></div>
+        <div class="stat-label">Absent Today</div>
+        <div class="stat-value" id="absentStudents">0</div>
+      </div>
+      <div class="stat-card orange">
+        <div class="stat-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          </svg>
         </div>
-    </section>
+        <div class="stat-label">Late Today</div>
+        <div class="stat-value" id="lateStudents">0</div>
+      </div>
+    </div>
 
-    <!-- 4 Departments -->
-    <section class="dashboard-section">
-        <div class="section-header">
-            <div><h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg> 4 Departments</h2><p>Student strength per branch</p></div>
-            <a href="students.html" class="btn btn-secondary">View All Students</a>
+    <!-- Departments -->
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+          </svg>
+          Departments
         </div>
-        <div class="dept-summary-grid">
-            <div class="dept-box cse-box"><span class="dept-tag cse-tag">CSE</span><h4>Computer Science</h4><div class="dept-count" id="count-cse">0 Students</div></div>
-            <div class="dept-box aids-box"><span class="dept-tag aids-tag">AIDS</span><h4>AI &amp; Data Science</h4><div class="dept-count" id="count-aids">0 Students</div></div>
-            <div class="dept-box bme-box"><span class="dept-tag bme-tag">BME</span><h4>Biomedical Engg</h4><div class="dept-count" id="count-bme">0 Students</div></div>
-            <div class="dept-box mech-box"><span class="dept-tag mech-tag">MECH</span><h4>Mechanical Engg</h4><div class="dept-count" id="count-mech">0 Students</div></div>
+        <a href="students.html" class="section-link">View All</a>
+      </div>
+      <div style="display:flex;justify-content:center;margin-bottom:14px;">
+        <svg width="180" height="80" viewBox="0 0 180 80" fill="none">
+          <rect x="20" y="20" width="140" height="52" rx="6" fill="var(--primary-light)" stroke="var(--primary)" stroke-width="1.2" opacity="0.6"/>
+          <rect x="34"  y="30" width="18" height="14" rx="3" fill="#4F6EF7" opacity="0.7" style="animation:floatDot 3s ease-in-out infinite 0s;"/>
+          <rect x="62"  y="30" width="18" height="14" rx="3" fill="#16C784" opacity="0.7" style="animation:floatDot 3s ease-in-out infinite 0.3s;"/>
+          <rect x="90"  y="30" width="18" height="14" rx="3" fill="#7C5CFC" opacity="0.7" style="animation:floatDot 3s ease-in-out infinite 0.6s;"/>
+          <rect x="118" y="30" width="18" height="14" rx="3" fill="#FFA621" opacity="0.7" style="animation:floatDot 3s ease-in-out infinite 0.9s;"/>
+          <rect x="74" y="56" width="32" height="16" rx="3" fill="var(--primary)" opacity="0.5"/>
+          <path d="M10 22 L90 4 L170 22" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.5"/>
+          <line x1="90" y1="4" x2="90" y2="18" stroke="var(--primary)" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M90 4 L102 8 L90 12Z" fill="#FFA621" opacity="0.8"/>
+        </svg>
+      </div>
+      <div class="dept-scroll">
+        <div class="dept-card cse">
+          <span class="dept-badge-pill cse">CSE</span>
+          <h4>Computer Science</h4>
+          <div class="dept-count" id="count-cse">0</div>
+          <div class="dept-count-label">students</div>
         </div>
+        <div class="dept-card aids">
+          <span class="dept-badge-pill aids">AIDS</span>
+          <h4>AI &amp; Data Science</h4>
+          <div class="dept-count" id="count-aids">0</div>
+          <div class="dept-count-label">students</div>
+        </div>
+        <div class="dept-card bme">
+          <span class="dept-badge-pill bme">BME</span>
+          <h4>Biomedical Engg</h4>
+          <div class="dept-count" id="count-bme">0</div>
+          <div class="dept-count-label">students</div>
+        </div>
+        <div class="dept-card mech">
+          <span class="dept-badge-pill mech">MECH</span>
+          <h4>Mechanical Engg</h4>
+          <div class="dept-count" id="count-mech">0</div>
+          <div class="dept-count-label">students</div>
+        </div>
+      </div>
     </section>
 
     <!-- Quick Actions -->
-    <section class="dashboard-section">
-        <div class="section-header"><div><h2><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Quick Actions</h2></div></div>
-        <div class="quick-actions">
-            <a href="attendance.html" class="action-btn">
-                <div class="action-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
-                <div><strong>Mark Attendance</strong><small>Record today's class attendance</small></div>
-            </a>
-            <a href="students.html" class="action-btn">
-                <div class="action-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
-                <div><strong>Add Students</strong><small>Paste names manually in bulk</small></div>
-            </a>
-            <a href="#" class="action-btn" onclick="AVCE.exportJSON()">
-                <div class="action-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
-                <div><strong>Export Data</strong><small>Download all data as JSON</small></div>
-            </a>
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+          </svg>
+          Quick Actions
         </div>
+      </div>
+      <div class="quick-grid">
+        <a href="attendance.html" class="quick-btn">
+          <div class="quick-btn-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+            </svg>
+          </div>
+          <strong>Mark Attendance</strong>
+          <small>Record today's class</small>
+        </a>
+        <a href="students.html" class="quick-btn">
+          <div class="quick-btn-icon" style="background:rgba(22,199,132,0.12);color:var(--success);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </div>
+          <strong>Add Students</strong>
+          <small>Single or bulk import</small>
+        </a>
+        <a href="students.html" class="quick-btn">
+          <div class="quick-btn-icon" style="background:rgba(124,92,252,0.12);color:var(--accent);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+              <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+            </svg>
+          </div>
+          <strong>By Department</strong>
+          <small>CSE · AIDS · BME · MECH</small>
+        </a>
+        <button class="quick-btn" onclick="logout()" style="text-align:left;background:none;border:1px solid var(--border-soft);">
+          <div class="quick-btn-icon" style="background:var(--danger-bg);color:var(--danger);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+          </div>
+          <strong>Logout</strong>
+          <small>End your session</small>
+        </button>
+      </div>
     </section>
 
-    <footer class="app-footer"><p>&copy; 2026 AVCE ATTENDANCE &bull; Developed by <strong>Saravanan K</strong></p></footer>
-</main>
+    <p style="text-align:center;font-size:11.5px;color:var(--text-3);padding:8px 0 4px;">
+      &copy; 2026 AVCE &bull; Developed by <strong style="color:var(--primary);">Saravanan K</strong>
+    </p>
+  </main>
+
+  <nav class="bottom-nav">
+    <a class="nav-item active" href="dashboard.html" data-page="dashboard">
+      <div class="nav-icon-wrap"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
+      <span class="nav-label">Dashboard</span>
+    </a>
+    <a class="nav-item" href="students.html" data-page="students">
+      <div class="nav-icon-wrap"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <span class="nav-label">Students</span>
+    </a>
+    <a class="nav-item" href="attendance.html" data-page="attendance">
+      <div class="nav-icon-wrap"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+      <span class="nav-label">Attendance</span>
+    </a>
+    <button class="nav-item" onclick="logout()">
+      <div class="nav-icon-wrap"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>
+      <span class="nav-label">Logout</span>
+    </button>
+  </nav>
 </div>
 
 <script src="static/app.js"></script>
 <script>
-    const sess = AVCE.requireLogin(); if (!sess) throw '';
+  // GitHub Pages: override redirects to .html pages
+  document.addEventListener('DOMContentLoaded', function() {
+    const sess = AVCE.getSession();
+    if (!sess) { window.location.href = 'index.html'; return; }
     AVCE.initTheme();
-    document.getElementById('userName').textContent = sess.full_name;
-    document.getElementById('userRole').textContent = sess.role.toUpperCase();
-    document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+    // Greeting
+    const el = document.getElementById('greetingName');
+    const gt = document.getElementById('greetingTime');
+    const gd = document.getElementById('greetingDate');
+    if (el) el.textContent = AVCE.getGreeting() + ', ' + sess.full_name + '! 👋';
+    if (gt) gt.textContent = AVCE.getGreeting().toUpperCase();
+    if (gd) gd.textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    const nameEl = document.getElementById('userNameDisplay');
+    const roleEl = document.getElementById('userRoleDisplay');
+    const avatEl = document.getElementById('userAvatarLetter');
+    if (nameEl) nameEl.textContent = sess.full_name || sess.username;
+    if (roleEl) roleEl.textContent = (sess.role||'staff').toUpperCase();
+    if (avatEl) avatEl.textContent = AVCE.getInitials(sess.full_name||sess.username);
+    // Stats with count-up
+    loadDashboard();
+  });
 
-    const stats = AVCE.getDashboardStats();
-    document.getElementById('totalStudents').textContent = stats.total;
-    document.getElementById('presentToday').textContent  = stats.present;
-    document.getElementById('absentToday').textContent   = stats.absent;
-    document.getElementById('lateToday').textContent     = stats.late;
-    document.getElementById('count-cse').textContent  = stats.deptCounts.CSE  + ' Students';
-    document.getElementById('count-aids').textContent = stats.deptCounts.AIDS + ' Students';
-    document.getElementById('count-bme').textContent  = stats.deptCounts.BME  + ' Students';
-    document.getElementById('count-mech').textContent = stats.deptCounts.MECH + ' Students';
+  // Override logout for GitHub Pages
+  const _origLogout = window.logout;
+  window.logout = function() {
+    localStorage.removeItem('avce_session');
+    window.location.href = 'index.html';
+  };
 </script>
 </body>
 </html>
