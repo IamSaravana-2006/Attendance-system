@@ -1,250 +1,267 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="en" data-theme="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Attendance | AVCE Attendance</title>
-    <meta name="description" content="Mark, manage and analyse student attendance by department and date">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Attendance | AVCE Attendance</title>
+  <meta name="description" content="Mark, manage and analyse student attendance by department and date">
+  <meta name="theme-color" content="#4F6EF7">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    /* ── Save button glow pulse on active save ── */
+    #saveAllBtn.saving {
+      animation: saveFlash 0.4s ease-in-out;
+    }
+    /* ── Active toggle button ── */
+    #toggleAbsenteesBtn.active {
+      background: var(--warning-bg);
+      border-color: var(--warning);
+      color: var(--warning);
+    }
+    /* ── Date label ── */
+    .att-date-label {
+      font-size: 12.5px; font-weight: 600; color: var(--text-3);
+      text-align: center; margin-bottom: 12px;
+    }
+    /* ── Control actions row scroll ── */
+    .control-actions {
+      display: flex; gap: 8px; overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .control-actions::-webkit-scrollbar { display: none; }
+    .control-actions .btn { flex: 0 0 auto; }
+  </style>
 </head>
 
 <body>
+<div class="app-shell">
 
-    <!-- Ambient Mesh Orbs -->
-    <div class="ambient-mesh">
-        <div class="ambient-orb orb-1"></div>
-        <div class="ambient-orb orb-2"></div>
-        <div class="ambient-orb orb-3"></div>
+  <!-- ── MOBILE HEADER ── -->
+  <header class="mobile-header">
+    <div class="mobile-header-brand">
+      <div class="header-logo">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 11l3 3L22 4"/>
+          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+        </svg>
+      </div>
+      <div>
+        <div class="header-title">Attendance</div>
+        <div class="header-subtitle" id="attDateLabel">Today</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn theme-toggle-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle theme">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+      <button class="icon-btn" onclick="exportAttendanceCSV()" title="Export CSV">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── PAGE CONTENT ── -->
+  <main class="page-content">
+
+    <!-- Animated Illustrator: Attendance scene -->
+    <div style="display:flex;justify-content:center;margin-bottom:8px;">
+      <svg width="200" height="90" viewBox="0 0 200 90" fill="none">
+        <!-- Clipboard body -->
+        <rect x="55" y="10" width="90" height="72" rx="8" fill="var(--primary-light)" opacity="0.8"
+          style="animation:floatDot 4s ease-in-out infinite;"/>
+        <!-- Clipboard clip -->
+        <rect x="78" y="5" width="44" height="12" rx="4" fill="var(--primary)" opacity="0.7"/>
+        <!-- Checklist rows -->
+        <g style="animation:floatDot 3.5s ease-in-out infinite 0.2s;">
+          <rect x="70" y="30" width="10" height="10" rx="2" fill="var(--success)" opacity="0.8"/>
+          <polyline points="72,35 74,37.5 78,32" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <rect x="86" y="31" width="44" height="7" rx="3" fill="var(--primary)" opacity="0.3"/>
+        </g>
+        <g style="animation:floatDot 3.5s ease-in-out infinite 0.5s;">
+          <rect x="70" y="46" width="10" height="10" rx="2" fill="var(--danger)" opacity="0.7"/>
+          <line x1="72.5" y1="48.5" x2="77.5" y2="53.5" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="77.5" y1="48.5" x2="72.5" y2="53.5" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+          <rect x="86" y="47" width="36" height="7" rx="3" fill="var(--danger)" opacity="0.2"/>
+        </g>
+        <g style="animation:floatDot 3.5s ease-in-out infinite 0.8s;">
+          <rect x="70" y="62" width="10" height="10" rx="2" fill="var(--warning)" opacity="0.7"/>
+          <rect x="86" y="63" width="50" height="7" rx="3" fill="var(--warning)" opacity="0.2"/>
+        </g>
+
+        <!-- Floating sparkles -->
+        <circle cx="20"  cy="25" r="4" fill="#4F6EF7" opacity="0.4" class="float-dot"/>
+        <circle cx="178" cy="30" r="3" fill="#16C784" opacity="0.5" class="float-dot"/>
+        <circle cx="165" cy="65" r="4" fill="#FFA621" opacity="0.4" class="float-dot"/>
+        <circle cx="28"  cy="60" r="3" fill="#7C5CFC" opacity="0.5" class="float-dot"/>
+
+        <!-- Pencil -->
+        <g transform="translate(156, 10) rotate(35)">
+          <rect x="0" y="0" width="8" height="36" rx="2" fill="var(--warning)" opacity="0.85"
+            style="animation:floatDot 3s ease-in-out infinite 1.2s;"/>
+          <path d="M0 36 L4 44 L8 36Z" fill="var(--text-1)" opacity="0.6"/>
+          <rect x="1" y="0" width="6" height="5" rx="1" fill="var(--danger)" opacity="0.5"/>
+        </g>
+      </svg>
     </div>
 
-    <div class="app">
-
-        <!-- ================= SIDEBAR ================= -->
-        <aside class="sidebar">
-
-            <div class="sidebar-brand">
-                <div class="sidebar-brand-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                        <polyline points="9 12 11 14 15 10"/>
-                    </svg>
-                </div>
-                <div class="sidebar-brand-text">
-                    AVCE
-                    <small>Attendance System</small>
-                </div>
-            </div>
-
-            <div class="nav-label">Navigation</div>
-
-            <nav>
-
-                <a href="/dashboard">
-                    <span class="nav-icon icon-svg">
-                        <svg width="18" height="18" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-                    </span>
-                    <span>Dashboard</span>
-                </a>
-
-                <a href="/students">
-                    <span class="nav-icon icon-svg">
-                        <svg width="18" height="18" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                    </span>
-                    <span>Students</span>
-                </a>
-
-                <a href="/attendance" class="active">
-                    <span class="nav-icon icon-svg">
-                        <svg width="18" height="18" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                    </span>
-                    <span>Attendance</span>
-                </a>
-
-                <a href="#" onclick="logout()">
-                    <span class="nav-icon icon-svg">
-                        <svg width="18" height="18" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                    </span>
-                    <span>Logout</span>
-                </a>
-
-            </nav>
-
-            <div class="sidebar-footer-brand">
-                AVCE ATTENDANCE
-                <strong>Saravanan K</strong>
-            </div>
-
-        </aside>
-
-
-        <!-- ================= MAIN ================= -->
-        <main class="main">
-
-            <header class="topbar">
-                <div>
-                    <h1>Attendance Management</h1>
-                    <p>Mark, manage &amp; analyse class attendance in real-time</p>
-                </div>
-
-                <div class="topbar-right">
-                    <button class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Dark/Light Mode" id="themeBtn">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" id="themeIcon">
-                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                        </svg>
-                    </button>
-
-                    <button class="btn btn-secondary" onclick="exportAttendanceCSV()" title="Export attendance to CSV">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                            <polyline points="7 10 12 15 17 10"/>
-                            <line x1="12" y1="15" x2="12" y2="3"/>
-                        </svg>
-                        Export CSV
-                    </button>
-                </div>
-            </header>
-
-
-            <!-- ================= LIVE STATS ================= -->
-            <div class="attendance-live-stats">
-
-                <div class="live-stat-card total">
-                    <span>Total Students</span>
-                    <strong id="liveStatTotal">0</strong>
-                </div>
-
-                <div class="live-stat-card present">
-                    <span>Present</span>
-                    <strong id="liveStatPresent">0</strong>
-                </div>
-
-                <div class="live-stat-card absent">
-                    <span>Absent</span>
-                    <strong id="liveStatAbsent">0</strong>
-                </div>
-
-                <div class="live-stat-card late">
-                    <span>Late</span>
-                    <strong id="liveStatLate">0</strong>
-                </div>
-
-                <div class="live-stat-card rate">
-                    <span>Attendance Rate</span>
-                    <strong id="liveStatRate">0%</strong>
-                </div>
-
-            </div>
-
-
-            <!-- ================= CONTROLS ================= -->
-            <div class="attendance-controls">
-
-                <div class="control-item">
-                    <label for="attendanceDepartment">Branch:</label>
-                    <select id="attendanceDepartment" onchange="loadAttendance()">
-                        <option value="">All 4 Departments</option>
-                        <option value="1">CSE - Computer Science</option>
-                        <option value="2">AIDS - AI &amp; Data Science</option>
-                        <option value="3">BME - Biomedical Engineering</option>
-                        <option value="4">MECH - Mechanical Engineering</option>
-                    </select>
-                </div>
-
-                <div class="control-item">
-                    <label for="attendanceDate">Date:</label>
-                    <input type="date" id="attendanceDate" onchange="loadAttendance()">
-                </div>
-
-                <button class="btn btn-secondary" onclick="loadAttendance()" title="Reload attendance">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="23 4 23 10 17 10"/>
-                        <polyline points="1 20 1 14 7 14"/>
-                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-                    </svg>
-                    Refresh
-                </button>
-
-                <div class="attendance-quick-buttons">
-
-                    <button
-                        type="button"
-                        class="btn btn-outline-warning"
-                        id="toggleAbsenteesBtn"
-                        onclick="toggleAbsenteesOnly()"
-                        title="Show only absent or late students"
-                    >
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                            <line x1="1" y1="1" x2="23" y2="23"/>
-                        </svg>
-                        Show Absentees Only
-                    </button>
-
-                    <button
-                        type="button"
-                        class="btn btn-success"
-                        onclick="markAllPresent()"
-                        title="Mark all visible students as Present"
-                    >
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="20 6 9 17 4 12"/>
-                        </svg>
-                        Mark All Present
-                    </button>
-
-                    <button
-                        type="button"
-                        class="btn btn-primary"
-                        onclick="saveAllAttendance()"
-                        title="Save attendance for all visible students"
-                    >
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                            <polyline points="17 21 17 13 7 13 7 21"/>
-                            <polyline points="7 3 7 8 15 8"/>
-                        </svg>
-                        Save All
-                    </button>
-
-                </div>
-
-            </div>
-
-
-            <!-- ================= ATTENDANCE TABLE ================= -->
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Roll Code</th>
-                            <th>Student Name</th>
-                            <th>Department</th>
-                            <th>Status</th>
-                            <th>Check In</th>
-                            <th>Remarks</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="attendanceTableBody">
-                        <tr>
-                            <td colspan="7" style="text-align:center; padding:30px; color:var(--text-muted);">
-                                Loading attendance records...
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <footer class="app-footer">
-                <p>&copy; 2026 AVCE ATTENDANCE &bull; Developed by <strong>Saravanan K</strong> (Developer)</p>
-            </footer>
-
-        </main>
-
+    <!-- ── LIVE STATS STRIP ── -->
+    <div class="live-stats-strip">
+      <div class="live-stat total">
+        <div class="live-stat-label">Total</div>
+        <div class="live-stat-value" id="liveStatTotal">0</div>
+      </div>
+      <div class="live-stat present">
+        <div class="live-stat-label">Present</div>
+        <div class="live-stat-value" id="liveStatPresent">0</div>
+      </div>
+      <div class="live-stat absent">
+        <div class="live-stat-label">Absent</div>
+        <div class="live-stat-value" id="liveStatAbsent">0</div>
+      </div>
+      <div class="live-stat late">
+        <div class="live-stat-label">Late</div>
+        <div class="live-stat-value" id="liveStatLate">0</div>
+      </div>
+      <div class="live-stat rate">
+        <div class="live-stat-label">Rate</div>
+        <div class="live-stat-value" id="liveStatRate">0%</div>
+      </div>
     </div>
 
-    <script src="{{ url_for('static', filename='app.js') }}"></script>
+    <!-- ── CONTROLS ── -->
+    <div class="att-controls">
 
+      <div class="control-row">
+        <label for="attendanceDepartment">Branch</label>
+        <select id="attendanceDepartment" class="control-select" onchange="loadAttendance()">
+          <option value="">All 4 Departments</option>
+          <option value="1">CSE — Computer Science</option>
+          <option value="2">AIDS — AI &amp; Data Science</option>
+          <option value="3">BME — Biomedical Engg</option>
+          <option value="4">MECH — Mechanical Engg</option>
+        </select>
+      </div>
+
+      <div class="control-row">
+        <label for="attendanceDate">Date</label>
+        <input type="date" id="attendanceDate" class="control-date" onchange="loadAttendance()">
+      </div>
+
+      <!-- Action buttons (scrollable row) -->
+      <div class="control-actions">
+
+        <button class="btn btn-secondary btn-sm" onclick="loadAttendance()" title="Reload">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"/>
+            <polyline points="1 20 1 14 7 14"/>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          </svg>
+          Refresh
+        </button>
+
+        <button id="toggleAbsenteesBtn" class="btn btn-warning btn-sm" onclick="toggleAbsenteesOnly()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+            <line x1="1" y1="1" x2="23" y2="23"/>
+          </svg>
+          Absentees Only
+        </button>
+
+        <button class="btn btn-success btn-sm" onclick="markAllPresent()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          All Present
+        </button>
+
+        <button id="saveAllBtn" class="btn btn-primary btn-sm" onclick="saveAllAttendance()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+            <polyline points="17 21 17 13 7 13 7 21"/>
+            <polyline points="7 3 7 8 15 8"/>
+          </svg>
+          Save All
+        </button>
+
+      </div>
+    </div>
+
+
+    <!-- ── ATTENDANCE LIST ── -->
+    <div class="attendance-list" id="attendanceList">
+      <!-- Skeleton loaders while JS runs -->
+      <div class="skeleton skeleton-card" style="height:100px;"></div>
+      <div class="skeleton skeleton-card" style="height:100px;"></div>
+      <div class="skeleton skeleton-card" style="height:100px;"></div>
+      <div class="skeleton skeleton-card" style="height:100px;"></div>
+    </div>
+
+
+    <!-- Footer -->
+    <p style="text-align:center;font-size:11.5px;color:var(--text-3);padding:16px 0 4px;">
+      &copy; 2026 AVCE &bull; Developed by <strong style="color:var(--primary);">Saravanan K</strong>
+    </p>
+
+  </main>
+
+  <!-- ── BOTTOM NAV ── -->
+  <nav class="bottom-nav">
+    <a class="nav-item" href="/dashboard" data-page="dashboard">
+      <div class="nav-icon-wrap">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      </div>
+      <span class="nav-label">Dashboard</span>
+    </a>
+    <a class="nav-item" href="/students" data-page="students">
+      <div class="nav-icon-wrap">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <span class="nav-label">Students</span>
+    </a>
+    <a class="nav-item active" href="/attendance" data-page="attendance">
+      <div class="nav-icon-wrap">
+        <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      </div>
+      <span class="nav-label">Attendance</span>
+    </a>
+    <button class="nav-item" onclick="logout()" data-page="logout">
+      <div class="nav-icon-wrap">
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </div>
+      <span class="nav-label">Logout</span>
+    </button>
+  </nav>
+
+</div>
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+<script>
+  // Update header date label when date changes
+  document.addEventListener('DOMContentLoaded', function() {
+    function updateDateLabel() {
+      const dateInput = document.getElementById('attendanceDate');
+      const label = document.getElementById('attDateLabel');
+      if (!label) return;
+      const val = dateInput ? dateInput.value : '';
+      const today = AVCE.getToday();
+      if (!val || val === today) {
+        label.textContent = 'Today · ' + new Date().toLocaleDateString('en-IN', {day:'numeric', month:'short'});
+      } else {
+        label.textContent = AVCE.formatDate(val);
+      }
+    }
+    const dateInput = document.getElementById('attendanceDate');
+    if (dateInput) {
+      dateInput.addEventListener('change', updateDateLabel);
+      updateDateLabel();
+    }
+  });
+</script>
 </body>
 </html>

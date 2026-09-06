@@ -1,322 +1,141 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AVCE ATTENDANCE - Login</title>
-    <meta name="description" content="Staff and Admin login for AVCE Attendance Management System">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
-        /* ── LOGIN PAGE EXACT DESIGN ── */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body.login-page {
-            min-height: 100vh;
-            display: flex;
-            background: #ffffff;
-            font-family: 'Inter', -apple-system, sans-serif;
-            overflow: hidden;
-        }
-
-        /* ── LEFT PANEL: Blobs ── */
-        .login-left {
-            width: 42%;
-            position: relative;
-            background: #fff;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* Big blob – main */
-        .blob-main {
-            position: absolute;
-            width: 340px;
-            height: 340px;
-            background: linear-gradient(135deg, #f953c6 0%, #b91d73 40%, #ee0979 70%, #f953c6 100%);
-            border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
-            top: -40px;
-            left: -60px;
-            animation: morphBlob 8s ease-in-out infinite;
-            box-shadow: 0 20px 60px rgba(249,83,198,0.35);
-        }
-
-        /* White inset ring inside main blob */
-        .blob-main::after {
-            content: '';
-            position: absolute;
-            inset: 28px;
-            background: rgba(255,255,255,0.22);
-            border-radius: 50% 40% 55% 35% / 45% 55% 35% 55%;
-            animation: morphBlob 8s ease-in-out infinite reverse;
-        }
-
-        /* Small bottom blob – orange-pink */
-        .blob-small {
-            position: absolute;
-            width: 180px;
-            height: 180px;
-            background: linear-gradient(135deg, #f7971e 0%, #ffd200 50%, #f953c6 100%);
-            border-radius: 40% 60% 70% 30% / 50% 30% 70% 50%;
-            bottom: -30px;
-            left: 10px;
-            animation: morphBlob2 10s ease-in-out infinite;
-            box-shadow: 0 10px 40px rgba(247,151,30,0.35);
-        }
-
-        /* Tiny top-right pink dot */
-        .blob-dot {
-            position: absolute;
-            width: 70px;
-            height: 70px;
-            background: linear-gradient(135deg, #f953c6 0%, #b91d73 100%);
-            border-radius: 50%;
-            bottom: 18%;
-            right: -20px;
-            opacity: 0.5;
-        }
-
-        @keyframes morphBlob {
-            0%,100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
-            25%      { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
-            50%      { border-radius: 50% 60% 30% 60% / 30% 60% 70% 40%; }
-            75%      { border-radius: 40% 70% 60% 30% / 50% 40% 50% 60%; }
-        }
-
-        @keyframes morphBlob2 {
-            0%,100% { border-radius: 40% 60% 70% 30% / 50% 30% 70% 50%; }
-            50%      { border-radius: 70% 30% 40% 60% / 30% 60% 40% 70%; }
-        }
-
-        /* ── RIGHT PANEL: Form ── */
-        .login-right {
-            width: 58%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 60px 80px;
-            background: #ffffff;
-        }
-
-        .login-form-wrap {
-            width: 100%;
-            max-width: 360px;
-        }
-
-        /* College branding above title */
-        .login-college-brand {
-            text-align: center;
-            margin-bottom: 8px;
-        }
-
-        .login-college-brand p {
-            font-size: 11.5px;
-            font-weight: 600;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            color: #b0b8c8;
-            margin-bottom: 4px;
-        }
-
-        .login-title {
-            font-size: 28px;
-            font-weight: 700;
-            color: #1a1a2e;
-            text-align: center;
-            margin-bottom: 36px;
-            letter-spacing: -0.3px;
-        }
-
-        /* Input groups */
-        .login-field {
-            display: flex;
-            align-items: center;
-            background: #f3f4f6;
-            border-radius: 50px;
-            padding: 0 20px;
-            margin-bottom: 18px;
-            height: 52px;
-            border: 1.5px solid transparent;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .login-field:focus-within {
-            border-color: #f953c6;
-            box-shadow: 0 0 0 3px rgba(249,83,198,0.12);
-            background: #fff;
-        }
-
-        .login-field svg {
-            flex-shrink: 0;
-            color: #b0b8c8;
-            margin-right: 12px;
-        }
-
-        .login-field input {
-            border: none;
-            background: transparent;
-            flex: 1;
-            font-size: 14.5px;
-            color: #1a1a2e;
-            outline: none;
-            font-family: inherit;
-        }
-
-        .login-field input::placeholder {
-            color: #b0b8c8;
-        }
-
-        /* Login Button */
-        .btn-login-new {
-            width: 100%;
-            height: 52px;
-            border: none;
-            border-radius: 50px;
-            background: linear-gradient(90deg, #f7971e 0%, #f953c6 50%, #b91d73 100%);
-            color: #fff;
-            font-size: 15px;
-            font-weight: 700;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 24px rgba(249,83,198,0.4);
-        }
-
-        .btn-login-new:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 14px 32px rgba(249,83,198,0.5);
-        }
-
-        .btn-login-new:active {
-            transform: translateY(0);
-        }
-
-        /* Status message */
-        .message {
-            text-align: center;
-            font-size: 13px;
-            margin-top: 14px;
-            min-height: 18px;
-            font-weight: 500;
-            color: #e53e3e;
-        }
-
-        /* Footer links */
-        .login-links {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .login-links p {
-            font-size: 13px;
-            color: #9ba3b2;
-            margin-bottom: 10px;
-        }
-
-        .login-footer-dev {
-            text-align: center;
-            margin-top: 40px;
-            font-size: 11.5px;
-            color: #c0c8d4;
-        }
-
-        .login-footer-dev strong {
-            color: #f953c6;
-            font-weight: 600;
-        }
-
-        /* Responsive */
-        @media (max-width: 700px) {
-            body.login-page { flex-direction: column; }
-            .login-left {
-                width: 100%;
-                height: 220px;
-            }
-            .login-right {
-                width: 100%;
-                padding: 40px 28px;
-            }
-            .blob-main { width: 220px; height: 220px; top: -30px; left: -40px; }
-            .blob-small { width: 120px; height: 120px; }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>AVCE Attendance — Staff Login</title>
+  <meta name="description" content="Staff and Admin login for AVCE Attendance Management System">
+  <meta name="theme-color" content="#0D1444">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body class="login-page">
 
-    <!-- ── LEFT: Animated Blobs ── -->
-    <div class="login-left">
-        <div class="blob-main"></div>
-        <div class="blob-small"></div>
-        <div class="blob-dot"></div>
+  <!-- ── HERO (animated illustrator top half) ── -->
+  <div class="login-hero">
+
+    <!-- Animated SVG Illustrator: Graduation & Data -->
+    <div class="login-hero-art">
+      <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+        <!-- Background circle -->
+        <circle cx="100" cy="100" r="90" fill="rgba(79,110,247,0.10)" class="pulse-circle"/>
+
+        <!-- Orbit ring 1 -->
+        <g class="orbit-ring">
+          <circle cx="100" cy="100" r="68" stroke="rgba(79,110,247,0.18)" stroke-width="1.5" stroke-dasharray="6 4"/>
+          <circle cx="168" cy="100" r="5" fill="#4F6EF7" opacity="0.8"/>
+        </g>
+        <!-- Orbit ring 2 -->
+        <g class="orbit-ring-2">
+          <circle cx="100" cy="100" r="50" stroke="rgba(124,92,252,0.18)" stroke-width="1.5" stroke-dasharray="4 6"/>
+          <circle cx="100" cy="50" r="4" fill="#7C5CFC" opacity="0.7"/>
+        </g>
+
+        <!-- Center: Graduation cap -->
+        <g transform="translate(72,68)">
+          <!-- Cap platform -->
+          <ellipse cx="28" cy="28" rx="28" ry="10" fill="#4F6EF7" opacity="0.9"/>
+          <!-- Cap top -->
+          <rect x="8" y="16" width="40" height="12" rx="4" fill="#4F6EF7"/>
+          <!-- Tassel -->
+          <line x1="50" y1="22" x2="56" y2="36" stroke="#FFA621" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="56" cy="38" r="3" fill="#FFA621"/>
+          <!-- Stars / sparkles -->
+          <path d="M58 8 L60 4 L62 8 L66 10 L62 12 L60 16 L58 12 L54 10Z" fill="#FFA621" opacity="0.8"
+            style="animation: floatDot 2.5s ease-in-out infinite;"/>
+        </g>
+
+        <!-- Bar chart (attendance visual) -->
+        <g transform="translate(34, 118)">
+          <rect x="0"  y="32" width="14" height="18" rx="3" fill="#16C784" opacity="0.85"
+            style="animation: floatDot 3s ease-in-out infinite 0.2s;"/>
+          <rect x="18" y="20" width="14" height="30" rx="3" fill="#4F6EF7" opacity="0.85"
+            style="animation: floatDot 3s ease-in-out infinite 0.5s;"/>
+          <rect x="36" y="10" width="14" height="40" rx="3" fill="#7C5CFC" opacity="0.85"
+            style="animation: floatDot 3s ease-in-out infinite 0.8s;"/>
+          <rect x="54" y="24" width="14" height="26" rx="3" fill="#FFA621" opacity="0.85"
+            style="animation: floatDot 3s ease-in-out infinite 1s;"/>
+          <!-- X-axis -->
+          <line x1="-4" y1="52" x2="72" y2="52" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"/>
+        </g>
+
+        <!-- Floating dots (decorative) -->
+        <circle cx="28"  cy="72"  r="4" fill="#16C784" opacity="0.6" class="float-dot"/>
+        <circle cx="172" cy="142" r="5" fill="#FFA621"  opacity="0.5" class="float-dot"/>
+        <circle cx="158" cy="58"  r="3" fill="#7C5CFC"  opacity="0.6" class="float-dot"/>
+        <circle cx="40"  cy="148" r="3" fill="#4F6EF7"  opacity="0.4" class="float-dot"/>
+
+        <!-- Check badge (top right) -->
+        <g transform="translate(142, 42)">
+          <circle cx="18" cy="18" r="18" fill="#16C784" opacity="0.15"/>
+          <circle cx="18" cy="18" r="12" fill="#16C784" opacity="0.9"/>
+          <polyline points="12,18 16,22 24,14" stroke="white" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round" fill="none" class="check-draw"/>
+        </g>
+      </svg>
     </div>
 
-    <!-- ── RIGHT: Login Form ── -->
-    <div class="login-right">
-        <div class="login-form-wrap">
+    <h1 class="login-hero-title">AVCE Attendance</h1>
+    <p class="login-hero-sub">Annai Vailankanni College of Engineering</p>
 
-            <div class="login-college-brand">
-                <p>Annai Vailankanni College of Engineering</p>
-            </div>
+  </div>
 
-            <h1 class="login-title">Staff Login</h1>
+  <!-- ── LOGIN SHEET (slides up from bottom) ── -->
+  <div class="login-sheet">
 
-            <form id="loginForm">
+    <h2>Staff Login</h2>
+    <p>Sign in to manage attendance</p>
 
-                <!-- Username -->
-                <div class="login-field">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                        <circle cx="12" cy="7" r="4"/>
-                    </svg>
-                    <input
-                        type="text"
-                        id="username"
-                        placeholder="Username"
-                        required
-                        autocomplete="username"
-                    >
-                </div>
+    <form id="loginForm" autocomplete="on" novalidate>
 
-                <!-- Password -->
-                <div class="login-field">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                    </svg>
-                    <input
-                        type="password"
-                        id="password"
-                        placeholder="Password"
-                        required
-                        autocomplete="current-password"
-                    >
-                </div>
+      <!-- Username -->
+      <div class="login-field">
+        <svg width="19" height="19" viewBox="0 0 24 24">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        <input
+          type="text"
+          id="username"
+          placeholder="Username"
+          required
+          autocomplete="username"
+          autocapitalize="none"
+          spellcheck="false"
+        >
+      </div>
 
-                <!-- Login Button -->
-                <button type="submit" class="btn-login-new" id="loginBtn">
-                    LOGIN
-                </button>
+      <!-- Password -->
+      <div class="login-field">
+        <svg width="19" height="19" viewBox="0 0 24 24">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        <input
+          type="password"
+          id="password"
+          placeholder="Password"
+          required
+          autocomplete="current-password"
+        >
+      </div>
 
-                <p id="loginMessage" class="message"></p>
+      <!-- Login Button -->
+      <button type="submit" class="btn-login" id="loginBtn">
+        Sign In
+      </button>
 
-            </form>
+      <p id="loginMessage" class="login-msg" aria-live="polite"></p>
 
-            <div class="login-links">
-                <p>AVCE Attendance Management System</p>
-            </div>
+    </form>
 
-            <div class="login-footer-dev">
-                &copy; 2026 AVCE &bull; Developed by <strong>Saravanan K</strong>
-            </div>
-
-        </div>
+    <div class="login-footer">
+      &copy; 2026 AVCE &bull; Developed by <strong>Saravanan K</strong>
     </div>
 
-    <script src="{{ url_for('static', filename='app.js') }}"></script>
+  </div>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>
