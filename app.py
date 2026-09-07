@@ -259,6 +259,16 @@ def logout():
 
 
 # ==========================================
+# LOGOUT PAGE (redirect)
+# ==========================================
+
+@app.route("/logout")
+def logout_page():
+    session.clear()
+    return redirect("/login")
+
+
+# ==========================================
 # CURRENT USER INFO
 # ==========================================
 
@@ -318,16 +328,18 @@ def dashboard():
     """)
     total_students = cursor.fetchone()["total"]
 
-    # Present today
+    # Present today (students with status=Present OR no record yet = default Present)
     cursor.execute("""
         SELECT COUNT(*) AS total
-        FROM attendance
-        WHERE attendance_date = CURDATE()
-        AND status = 'Present'
+        FROM students s
+        LEFT JOIN attendance a
+            ON s.id = a.student_id AND a.attendance_date = CURDATE()
+        WHERE s.status = 'Active'
+        AND COALESCE(a.status, 'Present') = 'Present'
     """)
     present = cursor.fetchone()["total"]
 
-    # Absent today
+    # Absent today (students explicitly marked Absent)
     cursor.execute("""
         SELECT COUNT(*) AS total
         FROM attendance
@@ -644,6 +656,7 @@ def get_attendance():
             s.section,
             DATE_FORMAT(a.attendance_date, '%Y-%m-%d') AS attendance_date,
             COALESCE(a.status, 'Present') AS status,
+            CASE WHEN a.id IS NOT NULL THEN 1 ELSE 0 END AS marked,
             TIME_FORMAT(a.check_in, '%H:%i') AS check_in,
             TIME_FORMAT(a.check_out, '%H:%i') AS check_out,
             COALESCE(a.remarks, '') AS remarks

@@ -8,42 +8,11 @@
   <meta name="theme-color" content="#4F6EF7">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <style>
-    /* ── Speed-Dial FAB ─────────────────────────────── */
+    /* ── FAB ─────────────────────────────────────── */
     .fab-wrap { position: fixed; right: 20px;
       bottom: calc(var(--bottom-nav-h) + var(--safe-bottom) + 20px);
-      z-index: 250; display: flex; flex-direction: column;
-      align-items: flex-end; gap: 12px;
+      z-index: 250;
     }
-    .fab-menu { display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
-      transition: all var(--dur-base) var(--ease-spring);
-      transform-origin: bottom right;
-    }
-    .fab-menu.hidden { pointer-events:none; opacity:0; transform:scale(0.7) translateY(20px); }
-    .fab-menu-item {
-      display: flex; align-items: center; gap: 10px;
-      animation: fabEnter 0.3s var(--ease-spring) both;
-    }
-    .fab-menu-item:nth-child(1){ animation-delay:0.05s; }
-    .fab-menu-item:nth-child(2){ animation-delay:0.10s; }
-    .fab-menu-item:nth-child(3){ animation-delay:0.15s; }
-    .fab-menu-label {
-      background: var(--surface); color: var(--text-1); font-size:13px;
-      font-weight: 700; padding: 6px 14px; border-radius: var(--radius-full);
-      box-shadow: var(--shadow); border: 1px solid var(--border-soft);
-      white-space: nowrap;
-    }
-    .fab-mini {
-      width: 48px; height: 48px; border-radius: 50%; border: none; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      color: white; box-shadow: var(--shadow);
-      transition: transform var(--dur-fast) var(--ease-spring);
-      flex-shrink: 0;
-    }
-    .fab-mini:active { transform: scale(0.88); }
-    .fab-mini svg { stroke: white; fill: none; stroke-width: 2.2;
-      stroke-linecap: round; stroke-linejoin: round; }
-    .fab-mini.add-one   { background: linear-gradient(135deg,#16C784,#0DAD6E); }
-    .fab-mini.add-bulk  { background: linear-gradient(135deg,var(--primary),var(--accent)); }
     .fab-main {
       width: 58px; height: 58px; border-radius: 50%; border: none; cursor: pointer;
       background: linear-gradient(135deg,var(--primary),var(--accent));
@@ -55,14 +24,8 @@
     }
     .fab-main svg { stroke: white; fill: none; stroke-width: 2.2;
       stroke-linecap: round; stroke-linejoin: round;
-      transition: transform var(--dur-base) var(--ease-spring);
     }
-    .fab-main.open svg { transform: rotate(45deg); }
     .fab-main:active { transform: scale(0.88); }
-
-    /* ── Overlay backdrop for FAB menu ─────────────── */
-    .fab-backdrop { position:fixed; inset:0; z-index:240; display:none; }
-    .fab-backdrop.show { display:block; }
 
     /* ── Bulk modal enhancements ─────────────────── */
     .dept-tabs { display:flex; gap:6px; overflow-x:auto; margin-bottom:16px;
@@ -226,37 +189,10 @@
 
   </main>
 
-  <!-- ── SPEED-DIAL FAB ── -->
-  <div class="fab-backdrop" id="fabBackdrop" onclick="closeFabMenu()"></div>
-
+  <!-- ── FAB: Bulk Add only ── -->
   <div class="fab-wrap">
-    <!-- Speed-dial items (hidden by default) -->
-    <div class="fab-menu hidden" id="fabMenu">
-
-      <div class="fab-menu-item">
-        <span class="fab-menu-label">Add One Student</span>
-        <button class="fab-mini add-one" onclick="closeFabMenu(); openStudentModal();" title="Add one student">
-          <svg width="20" height="20" viewBox="0 0 24 24">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
-          </svg>
-        </button>
-      </div>
-
-      <div class="fab-menu-item">
-        <span class="fab-menu-label">Bulk Add — Paste Names</span>
-        <button class="fab-mini add-bulk" onclick="closeFabMenu(); openBulkStudentModal();" title="Bulk add students">
-          <svg width="20" height="20" viewBox="0 0 24 24">
-            <line x1="12" y1="5" x2="12" y2="19"/>
-            <line x1="5" y1="12" x2="19" y2="12"/>
-          </svg>
-        </button>
-      </div>
-
-    </div>
-
-    <!-- Main FAB button -->
-    <button class="fab-main" id="fabMain" onclick="toggleFabMenu()" aria-label="Add students">
+    <!-- Main FAB button — directly opens Bulk Add modal -->
+    <button class="fab-main" id="fabMain" onclick="openBulkStudentModal()" aria-label="Add students">
       <svg width="26" height="26" viewBox="0 0 24 24">
         <line x1="12" y1="5" x2="12" y2="19"/>
         <line x1="5" y1="12" x2="19" y2="12"/>

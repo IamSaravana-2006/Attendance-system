@@ -802,6 +802,7 @@ function loadAttendance() {
           year:          r.year,
           section:       r.section,
           status:        r.status || 'Present',
+          marked:        r.marked === 1 || r.marked === true,
           check_in:      r.check_in || '',
           remarks:       r.remarks || ''
         }));
@@ -820,16 +821,19 @@ function loadAttendance() {
 }
 
 function updateLiveStats() {
-  const total   = _attData.length;
-  const present = _attData.filter(r => r.status === 'Present').length;
-  const absent  = _attData.filter(r => r.status === 'Absent').length;
-  const late    = _attData.filter(r => r.status === 'Late').length;
-  const rate    = total ? Math.round((present / total) * 100) : 0;
+  const total    = _attData.length;
+  const marked   = _attData.filter(r => r.marked).length;
+  const present  = _attData.filter(r => r.marked && r.status === 'Present').length;
+  const absent   = _attData.filter(r => r.marked && r.status === 'Absent').length;
+  const late     = _attData.filter(r => r.marked && r.status === 'Late').length;
+  const unmarked = total - marked;
+  const rate     = marked ? Math.round((present / marked) * 100) : 0;
 
-  AVCE.countUp(document.getElementById('liveStatTotal'),   total);
-  AVCE.countUp(document.getElementById('liveStatPresent'), present);
-  AVCE.countUp(document.getElementById('liveStatAbsent'),  absent);
-  AVCE.countUp(document.getElementById('liveStatLate'),    late);
+  AVCE.countUp(document.getElementById('liveStatTotal'),    total);
+  AVCE.countUp(document.getElementById('liveStatPresent'),  present);
+  AVCE.countUp(document.getElementById('liveStatAbsent'),   absent);
+  AVCE.countUp(document.getElementById('liveStatLate'),     late);
+  AVCE.countUp(document.getElementById('liveStatUnmarked'), unmarked);
   const rateEl = document.getElementById('liveStatRate');
   if (rateEl) rateEl.textContent = rate + '%';
 }
@@ -915,7 +919,10 @@ function renderAttendanceList() {
 function setStatus(studentId, status, btn) {
   // Update in-memory data
   const rec = _attData.find(r => r.student_id === studentId);
-  if (rec) rec.status = status;
+  if (rec) {
+    rec.status = status;
+    rec.marked = true;  // Mark as explicitly set by user
+  }
 
   // Update card left-border color
   const card = document.getElementById(`att-card-${studentId}`);
@@ -938,7 +945,7 @@ function setStatus(studentId, status, btn) {
 
 // BUG FIX: markAllPresent was called in HTML but never defined
 function markAllPresent() {
-  _attData.forEach(r => { r.status = 'Present'; });
+  _attData.forEach(r => { r.status = 'Present'; r.marked = true; });
   renderAttendanceList();
   updateLiveStats();
   showToast('All students marked Present!', 'success');
