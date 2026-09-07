@@ -454,25 +454,46 @@ function setCurrentDate() {
   el.textContent = now.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short' });
 }
 
-// BUG FIX: Dashboard was never loading data — stat IDs stayed at 0 forever
+// FIXED: Dashboard now fetches from Flask API (MySQL) instead of localStorage only
 function loadDashboard() {
-  const stats = AVCE.getDashboardStats();
+  fetch('/api/dashboard')
+    .then(r => r.json())
+    .then(data => {
+      if (!data.success) return;
 
-  countUp(document.getElementById('totalStudents'),   stats.total);
-  countUp(document.getElementById('presentStudents'), stats.present);
-  countUp(document.getElementById('absentStudents'),  stats.absent);
-  countUp(document.getElementById('lateStudents'),    stats.late);
+      countUp(document.getElementById('totalStudents'),   data.total_students || 0);
+      countUp(document.getElementById('presentStudents'), data.present || 0);
+      countUp(document.getElementById('absentStudents'),  data.absent || 0);
+      countUp(document.getElementById('lateStudents'),    data.late || 0);
 
-  // Department counts
-  const depts = ['CSE','AIDS','BME','MECH'];
-  depts.forEach(code => {
-    const el = document.getElementById(`count-${code.toLowerCase()}`);
-    if (el) {
-      countUp(el, stats.deptCounts[code] || 0);
-    }
-  });
+      // Department counts from API
+      const deptCodeMap = { 1: 'cse', 2: 'aids', 3: 'bme', 4: 'mech' };
+      if (data.department_stats) {
+        data.department_stats.forEach(d => {
+          const code = deptCodeMap[d.id];
+          if (code) {
+            const el = document.getElementById(`count-${code}`);
+            if (el) countUp(el, d.student_count || 0);
+          }
+        });
+      }
 
-  _dashLoaded = true;
+      _dashLoaded = true;
+    })
+    .catch(() => {
+      // Fallback to localStorage if API fails (offline)
+      const stats = AVCE.getDashboardStats();
+      countUp(document.getElementById('totalStudents'),   stats.total);
+      countUp(document.getElementById('presentStudents'), stats.present);
+      countUp(document.getElementById('absentStudents'),  stats.absent);
+      countUp(document.getElementById('lateStudents'),    stats.late);
+      const depts = ['CSE','AIDS','BME','MECH'];
+      depts.forEach(code => {
+        const el = document.getElementById(`count-${code.toLowerCase()}`);
+        if (el) countUp(el, stats.deptCounts[code] || 0);
+      });
+      _dashLoaded = true;
+    });
 }
 
 const countUp = AVCE.countUp;
@@ -515,10 +536,22 @@ function searchStudents() {
   renderStudentList();
 }
 
+// FIXED: loadStudents now fetches all students from Flask API (MySQL)
+// Department filtering is handled by renderStudentList() in the UI
 function loadStudents(deptId) {
   if (deptId !== undefined) _currentDeptFilter = deptId;
-  _allStudents = AVCE.getStudents();
-  renderStudentList();
+
+  fetch('/api/students')
+    .then(r => r.json())
+    .then(data => {
+      _allStudents = data.success ? (data.students || []) : [];
+      renderStudentList();
+    })
+    .catch(() => {
+      // Fallback to localStorage if API fails
+      _allStudents = AVCE.getStudents();
+      renderStudentList();
+    });
 }
 
 function renderStudentList() {
@@ -584,12 +617,27 @@ function renderStudentList() {
   }).join('');
 }
 
+// FIXED: confirmDeleteStudent now calls Flask DELETE API
 function confirmDeleteStudent(id, name) {
   AVCE.vibrate([30, 20, 30]);
   if (!confirm(`Delete student "${name}"? This will also remove their attendance records.`)) return;
-  AVCE.deleteStudent(id);
-  loadStudents();
-  showToast(`${name} removed.`, 'success');
+
+  fetch(`/api/students/${id}`, { method: 'DELETE' })
+    .then(r => r.json())
+    .then(result => {
+      if (result.success) {
+        showToast(`${name} removed.`, 'success');
+        loadStudents();
+      } else {
+        showToast(result.message || 'Failed to delete student.', 'error');
+      }
+    })
+    .catch(() => {
+      // Fallback: delete from localStorage
+      AVCE.deleteStudent(id);
+      loadStudents();
+      showToast(`${name} removed.`, 'success');
+    });
 }
 
 // BUG FIX: openStudentModal was called in HTML but never defined
@@ -641,31 +689,46 @@ document.addEventListener('click', function(e) {
   }
 });
 
-// BUG FIX: handleAddStudent was missing (form submit had no listener)
+// FIXED: handleAddStudent now calls Flask API (MySQL) instead of localStorage only
 function handleAddStudent(e) {
   e.preventDefault();
   const data = {
     student_code:  document.getElementById('studentCode')?.value.trim(),
     name:          document.getElementById('studentName')?.value.trim(),
-    email:         document.getElementById('studentEmail')?.value.trim(),
     phone:         document.getElementById('studentPhone')?.value.trim(),
     gender:        document.getElementById('studentGender')?.value,
     department_id: document.getElementById('departmentId')?.value,
     year:          document.getElementById('studentYear')?.value,
     section:       document.getElementById('studentSection')?.value.trim()
   };
-  if (!data.name || !data.department_id) {
-    showToast('Name and department are required.', 'error');
+  if (!data.name || !data.student_code || !data.department_id) {
+    showToast('Name, roll code and department are required.', 'error');
     return;
   }
-  const result = AVCE.addStudent(data);
-  if (result.success) {
-    showToast(`${data.name} added successfully!`, 'success');
-    closeStudentModal();
-    loadStudents();
-  } else {
-    showToast(result.message, 'error');
-  }
+  const submitBtn = document.querySelector('#studentForm [type="submit"]');
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Saving…'; }
+
+  fetch('/api/students', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+    .then(r => r.json())
+    .then(result => {
+      if (result.success) {
+        showToast(`${data.name} added successfully!`, 'success');
+        AVCE.vibrate(60);
+        closeStudentModal();
+        loadStudents();
+      } else {
+        showToast(result.message || 'Failed to add student.', 'error');
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Save Student'; }
+      }
+    })
+    .catch(() => {
+      showToast('Network error. Please try again.', 'error');
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Save Student'; }
+    });
 }
 
 // handleBulkAddStudents: logic now handled inline in students.html
@@ -709,7 +772,7 @@ function initAttendancePage() {
   loadAttendance();
 }
 
-// BUG FIX: loadAttendance was called in HTML but never defined
+// FIXED: loadAttendance now fetches from Flask API (MySQL) instead of localStorage only
 function loadAttendance() {
   const dateInput = document.getElementById('attendanceDate');
   const deptSel   = document.getElementById('attendanceDepartment');
@@ -721,9 +784,39 @@ function loadAttendance() {
   const toggleBtn = document.getElementById('toggleAbsenteesBtn');
   if (toggleBtn) toggleBtn.classList.remove('active');
 
-  _attData = AVCE.getAttendanceForDate(_attDate, _attDept);
-  updateLiveStats();
-  renderAttendanceList();
+  // Build API URL
+  let url = `/api/attendance?date=${_attDate}`;
+  if (_attDept) url += `&department_id=${_attDept}`;
+
+  fetch(url)
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        // Map API response to the format _attData expects
+        _attData = (data.attendance || []).map(r => ({
+          id:            r.id,
+          student_id:    r.id,
+          student_code:  r.student_code,
+          name:          r.name,
+          department_id: r.department_id,
+          year:          r.year,
+          section:       r.section,
+          status:        r.status || 'Present',
+          check_in:      r.check_in || '',
+          remarks:       r.remarks || ''
+        }));
+      } else {
+        _attData = [];
+      }
+      updateLiveStats();
+      renderAttendanceList();
+    })
+    .catch(() => {
+      // Fallback to localStorage if API fails
+      _attData = AVCE.getAttendanceForDate(_attDate, _attDept);
+      updateLiveStats();
+      renderAttendanceList();
+    });
 }
 
 function updateLiveStats() {
@@ -818,25 +911,28 @@ function renderAttendanceList() {
   }).join('');
 }
 
-// BUG FIX: setStatus was never defined — per-student status toggle
+// setStatus: update in-memory status + card UI + live stats strip
 function setStatus(studentId, status, btn) {
   // Update in-memory data
   const rec = _attData.find(r => r.student_id === studentId);
   if (rec) rec.status = status;
 
-  // Update card class
+  // Update card left-border color
   const card = document.getElementById(`att-card-${studentId}`);
   if (card) {
     card.classList.remove('status-present','status-absent','status-late','status-leave');
     card.classList.add(`status-${status.toLowerCase()}`);
   }
 
-  // Update buttons in card
+  // Update buttons in this card row
   if (btn) {
     const row = btn.closest('.att-status-row');
     if (row) row.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
   }
+
+  // BUG FIX: Update the live stats strip immediately on every tap
+  updateLiveStats();
   AVCE.vibrate(30);
 }
 
@@ -862,7 +958,7 @@ function toggleAbsenteesOnly() {
   renderAttendanceList();
 }
 
-// BUG FIX: saveAllAttendance was called in HTML but never defined
+// FIXED: saveAllAttendance now calls Flask API (MySQL) instead of localStorage only
 function saveAllAttendance() {
   if (!_attData.length) { showToast('No attendance records to save.', 'warning'); return; }
 
@@ -879,17 +975,37 @@ function saveAllAttendance() {
     remarks: r.remarks || ''
   }));
 
-  AVCE.bulkSaveAttendance(_attDate, records);
-  updateLiveStats();
-  showToast(`✓ Attendance saved for ${records.length} students!`, 'success');
-  AVCE.vibrate(80);
-
-  // Flash the save button
   const saveBtn = document.getElementById('saveAllBtn');
-  if (saveBtn) {
-    saveBtn.classList.add('saving');
-    setTimeout(() => saveBtn.classList.remove('saving'), 400);
-  }
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.classList.add('saving'); }
+
+  fetch('/api/attendance/bulk', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ attendance_date: _attDate, records })
+  })
+    .then(r => r.json())
+    .then(result => {
+      if (result.success) {
+        updateLiveStats();
+        showToast(`✓ Attendance saved for ${records.length} students!`, 'success');
+        AVCE.vibrate(80);
+      } else {
+        showToast(result.message || 'Failed to save attendance.', 'error');
+      }
+    })
+    .catch(() => {
+      // Fallback to localStorage
+      AVCE.bulkSaveAttendance(_attDate, records);
+      updateLiveStats();
+      showToast(`✓ Attendance saved (offline mode)!`, 'success');
+      AVCE.vibrate(80);
+    })
+    .finally(() => {
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        setTimeout(() => saveBtn.classList.remove('saving'), 400);
+      }
+    });
 }
 
 // BUG FIX: exportAttendanceCSV was called in HTML but never defined
@@ -917,16 +1033,32 @@ function setBottomNavActive(page) {
 
 // ══════════════════════════════════════════════════════════
 // AUTO-INIT BASED ON PAGE
+// Works for: Flask (/students), GitHub Pages (/Attendance-system/students.html)
 // ══════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', function() {
-  const path = window.location.pathname;
-  if (path === '/login' || path === '/') {
+  const path = window.location.pathname.toLowerCase();
+
+  // Flexible page matcher: works for Flask routes AND GitHub Pages .html paths
+  const isPage = (name) =>
+    path === '/' + name ||
+    path.endsWith('/' + name) ||
+    path.endsWith('/' + name + '.html') ||
+    path === name + '.html' ||
+    path === '/' + name + '.html';
+
+  if (isPage('login') || path === '/' || path.endsWith('index.html') || path.endsWith('index')) {
     if (document.getElementById('loginForm')) initLoginPage();
-  } else if (path === '/dashboard') {
+  } else if (isPage('dashboard')) {
     if (document.getElementById('totalStudents')) initDashboardPage();
-  } else if (path === '/students') {
+  } else if (isPage('students')) {
     if (document.getElementById('studentList')) initStudentsPage();
-  } else if (path === '/attendance') {
+  } else if (isPage('attendance')) {
     if (document.getElementById('attendanceList')) initAttendancePage();
+  } else {
+    // Fallback: detect page by DOM elements (handles any unknown URL patterns)
+    if      (document.getElementById('loginForm'))      initLoginPage();
+    else if (document.getElementById('totalStudents'))  initDashboardPage();
+    else if (document.getElementById('studentList'))    initStudentsPage();
+    else if (document.getElementById('attendanceList')) initAttendancePage();
   }
 });

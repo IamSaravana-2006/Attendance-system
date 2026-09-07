@@ -335,10 +335,7 @@
         <label>Full Name *</label>
         <input type="text" id="studentName" placeholder="e.g. Arun Kumar" required autocomplete="off">
       </div>
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" id="studentEmail" placeholder="e.g. arun@gmail.com">
-      </div>
+
       <div class="form-row">
         <div class="form-group">
           <label>Gender</label>
@@ -612,7 +609,7 @@ async function pasteFromClipboard() {
   }
 }
 
-/* ── Bulk save ──────────────────────────────────── */
+/* ── Bulk save (calls Flask API) ───────────────── */
 function handleBulkAddStudents() {
   const inputs = Array.from(document.querySelectorAll('#bulkNamesList .bulk-name'));
   const names  = inputs.map(i => i.value.trim()).filter(Boolean);
@@ -634,26 +631,50 @@ function handleBulkAddStudents() {
   btn.textContent = `Adding ${names.length} students…`;
   if (prog) prog.style.display = 'block';
 
-  // Animated progress
+  // Animated progress bar
   let done = 0;
   const interval = setInterval(() => {
     done += Math.ceil(names.length / 10);
-    const pct = Math.min(Math.round((done / names.length) * 100), 95);
+    const pct = Math.min(Math.round((done / names.length) * 100), 90);
     if (bar) bar.style.width = pct + '%';
   }, 60);
 
-  setTimeout(() => {
-    clearInterval(interval);
-    const result = AVCE.bulkAddStudents(names, _bulkDeptId, year, section);
-    if (bar) bar.style.width = '100%';
-
-    setTimeout(() => {
-      AVCE.showToast(`✓ ${result.count} students added to ${AVCE.deptCode(_bulkDeptId)}!`, 'success');
-      AVCE.vibrate(80);
-      closeBulkStudentModal();
-      loadStudents();
-    }, 350);
-  }, 600);
+  fetch('/api/students/bulk', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      department_id: _bulkDeptId,
+      year: parseInt(year),
+      section,
+      names
+    })
+  })
+    .then(r => r.json())
+    .then(result => {
+      clearInterval(interval);
+      if (bar) bar.style.width = '100%';
+      setTimeout(() => {
+        if (result.success) {
+          AVCE.showToast(`✓ ${result.count} students added to ${AVCE.deptCode(_bulkDeptId)}!`, 'success');
+          AVCE.vibrate(80);
+          closeBulkStudentModal();
+          loadStudents();
+        } else {
+          AVCE.showToast(result.message || 'Failed to add students.', 'error');
+          btn.disabled = false;
+          btn.textContent = 'Add All Students';
+          if (prog) prog.style.display = 'none';
+        }
+      }, 350);
+    })
+    .catch(() => {
+      clearInterval(interval);
+      AVCE.showToast('Network error. Please try again.', 'error');
+      btn.disabled = false;
+      btn.textContent = 'Add All Students';
+      if (bar) bar.style.width = '0%';
+      if (prog) prog.style.display = 'none';
+    });
 }
 
 /* ── FAB speed-dial ─────────────────────────────── */
