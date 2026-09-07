@@ -59,14 +59,12 @@ function requireLogin() {
   return s;
 }
 
-// logout: call Flask API to clear server session, then clear localStorage
+// logout: clear localStorage first, then try to clear server session (don't wait for it)
 function logout() {
-  fetch('/api/logout')
-    .catch(() => {})
-    .finally(() => {
-      localStorage.removeItem(K.session);
-      window.location.href = '/login';
-    });
+  localStorage.removeItem(K.session);
+  // Fire-and-forget server session clear — don't block on 404/errors
+  try { fetch('/api/logout').catch(() => {}); } catch(e) {}
+  window.location.href = '/login';
 }
 
 // ── THEME ──────────────────────────────────────────────────
@@ -677,6 +675,9 @@ function closeBulkStudentModal() {
   if (!overlay) return;
   overlay.style.display = 'none';
   overlay.classList.remove('open');
+  // Clear the dynamic names list so it starts fresh next time
+  const namesList = document.getElementById('bulkNamesList');
+  if (namesList) namesList.innerHTML = '';
   document.getElementById('bulkStudentForm')?.reset();
   document.body.style.overflow = '';
 }
@@ -823,11 +824,12 @@ function loadAttendance() {
 function updateLiveStats() {
   const total    = _attData.length;
   const marked   = _attData.filter(r => r.marked).length;
-  const present  = _attData.filter(r => r.marked && r.status === 'Present').length;
-  const absent   = _attData.filter(r => r.marked && r.status === 'Absent').length;
-  const late     = _attData.filter(r => r.marked && r.status === 'Late').length;
+  // Count ALL students by status (including unmarked defaults = Present)
+  const present  = _attData.filter(r => r.status === 'Present').length;
+  const absent   = _attData.filter(r => r.status === 'Absent').length;
+  const late     = _attData.filter(r => r.status === 'Late').length;
   const unmarked = total - marked;
-  const rate     = marked ? Math.round((present / marked) * 100) : 0;
+  const rate     = total ? Math.round((present / total) * 100) : 0;
 
   AVCE.countUp(document.getElementById('liveStatTotal'),    total);
   AVCE.countUp(document.getElementById('liveStatPresent'),  present);

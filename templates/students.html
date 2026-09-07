@@ -638,17 +638,23 @@ function openBulkStudentModal() {
   document.body.style.overflow = 'hidden';
   AVCE.vibrate(30);
 
-  // Pre-fill 5 empty rows if list is empty
+  // Always reset rows so old names don't remain after a save
   const list = document.getElementById('bulkNamesList');
-  if (!list.children.length) addBulkRows(5);
+  list.innerHTML = '';
+  _rowCount = 0;
+  updateNameCount();
+  addBulkRows(5);
 }
 
-/* ── chip counts ─────────────────────────────────── */
+/* ── chip counts (uses API data, not localStorage) ── */
 function updateChipCounts() {
-  const all = AVCE.getStudents();
+  // Use _allStudents from API if available, fallback to localStorage
+  const all = (typeof _allStudents !== 'undefined' && _allStudents.length)
+    ? _allStudents
+    : AVCE.getStudents();
   [1,2,3,4].forEach(id => {
     const el = document.getElementById(`chip-count-${id}`);
-    if (el) el.textContent = all.filter(s => s.department_id === id).length;
+    if (el) el.textContent = all.filter(s => s.department_id === parseInt(id)).length;
   });
 }
 
